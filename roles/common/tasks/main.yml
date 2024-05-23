@@ -1,0 +1,36 @@
+---
+- name: Create ansible user
+  ansible.builtin.user:
+    name: ansible
+    groups:
+      - wheel
+
+- name: "Add authorized keys"
+  authorized_key:
+    user: ansible
+    key: "{{ lookup('file', '/Users/dave/.ssh/id_ed25519.pub') }}"
+
+- name: Make ansible sudeluss
+  ansible.builtin.lineinfile:
+    dest: "/etc/sudoers" # path: in version 2.3
+    state: "present"
+    regexp: "^%ansible"
+    line: "%ansible ALL=(ALL) NOPASSWD: ALL"
+
+- name: Install Prereqs
+  ansible.builtin.dnf:
+    name: "{{ package }}"
+    state: installed
+  with_items: "{{ pkgs }}"
+  loop_control:
+    loop_var: package
+
+- name: Configure firewall
+  ansible.builtin.firewalld:
+    service: "{{ service }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  with_items: "{{ firewalls_services }}"
+  loop_control:
+    loop_var: service

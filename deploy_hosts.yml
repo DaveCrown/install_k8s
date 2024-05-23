@@ -1,0 +1,15 @@
+---
+- name: Deploy Virtualization hosts
+  hosts: hosts
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Run common
+      ansible.builtin.include_role:
+        name: common
+    
+    - name: Enable Cockpit service
+      ansible.builtin.service:
+        name: cockpit
+        state: started 
