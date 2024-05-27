@@ -1,0 +1,10 @@
+---
+- name: systemd_reload
+  systemd:
+    daemon_reload: yes
+
+- name: dhcpd_glass_service
+  service:
+    name: dhcpd_glass
+    state: restarted
+    enabled: yes

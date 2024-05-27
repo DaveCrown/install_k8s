@@ -1,0 +1,9 @@
+zone "{{ domain_name }}" {
+    type master;
+    file "/etc/named/zones/db.{{ domain_name }}"; # zone file path
+};
+
+zone "{{ network | ipaddr('network') | ipaddr('revdns') }}" {
+    type master;
+    file "/etc/named/zones/db.{{ network | ipaddr('network') }}";  # 10.3.40.0/24 subnet
+};

@@ -1,0 +1,7 @@
+---
+# handlers file for roles/install_dns
+- name: service_named
+  service: 
+    name: named
+    state: restarted
+    enabled: yes

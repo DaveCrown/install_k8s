@@ -1,0 +1,25 @@
+authoritative;
+
+ddns-update-style interim;
+ddns-updates on;
+
+
+option domain-name "{{domain_name}}";
+option domain-name-servers {{ nodes.services }};
+
+default-lease-time 3600;
+max-lease-time 3600;
+ 
+log-facility local1;
+
+subnet {{ network | ipaddr('network') }} netmask {{ network | ipaddr('netmask') }} {
+  allow unknown-clients;
+  range {{ nodes.compute.start | ipmath( +(nodes.compute.nodes) ) }} {{ network | ipaddr('subnet') | ipaddr('net') | ipaddr('-11') | ipaddr('address')  }};       
+  option routers {{ network | ipaddr('net') | ipaddr('1') | ipaddr('address') }};             
+}
+{% for host in mac_addy %}
+host {{ host }} {
+  hardware ethernet {{ mac_addy[host] }};
+  fixed-address {{ ip_lookup[host] }};
+}
+{% endfor %}

@@ -1,0 +1,70 @@
+---
+- name: install shizzle
+  package:
+    name: "{{ rhel_pkgs }}"
+    state: latest
+
+- name: build ip table
+  template:
+    src: ip_lookup.yaml.j2
+    dest: "{{ playbook_dir }}/work/ip_lookup.yaml"
+  delegate_to: localhost
+  become: no
+
+- name: load ip_table
+  include_vars:
+    file: "{{ playbook_dir }}/work/ip_lookup.yaml"
+
+- name: mkdir dhcpd directory
+  file:
+    state: directory
+    path: "{{ dhcpd_log_file | dirname }}"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: touch dhcpd.log file
+  file:
+    state: touch
+    path: "{{ dhcpd_log_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+    modification_time: preserve
+
+- name: deploy systemd unit file
+  template:
+    src: dhcpd.service.j2
+    dest: /etc/systemd/system/dhcpd.service
+    owner: root
+    group: root
+    mode: '0755'
+  notify: 
+    - systemd_reload
+    - dhcpd_service
+
+- name: add dhcpd config to rsyslog.conf
+  lineinfile:
+    path: /etc/rsyslog.conf
+    regex: "{{ dhcpd_log_file }}"
+    line: 'local1.debug                {{ dhcpd_log_file }}'
+    insertafter: '^local7'
+  notify: rsyslog_service
+
+- name: deploy dhcpd config from template
+  template:
+    src: dhcpd.conf.j2
+    dest: /etc/dhcp/dhcpd.conf
+    owner: root
+    group: root
+    mode: '0644'
+    validate: /sbin/dhcpd -t -cf %s
+  notify: dhcpd_service
+
+- name: open da ports
+  firewalld:
+    zone: public
+    state: enabled
+    service: dhcp
+    permanent: yes
+    immediate: yes

@@ -1,0 +1,25 @@
+$TTL    604800
+@       IN      SOA     services.{{ domain_name }}. admin.{{ domain_name }}. (
+                  6     ; Serial
+             604800     ; Refresh
+              86400     ; Retry
+            2419200     ; Expire
+             604800     ; Negative Cache TTL
+)
+
+; name servers - NS records
+    IN      NS      services.{{ domain_name }}.
+
+; name servers - PTR records
+{{ nodes.services.split('.')[3] }}    IN    PTR    services.{{ domain_name }}.
+
+; OpenShift Container Platform Cluster - PTR records
+{{ nodes.bootstrap.split('.')[3] }}    IN    PTR    bootstrap.{{ domain_name }}.
+{% for node in nodes.control_plane %}
+{{ nodes.control_plane[node].split('.')[3]}}  IN    PTR    control-plane-{{node}}.{{ domain_name }}.
+{% endfor %}
+{% for node in range(1,nodes.compute.nodes + 1)%}
+{{nodes.compute.start.split('.')[3]| int + node -1}}  IN    PTR    compute-1.{{ domain_name }}.
+{% endfor %}
+{{ nodes.services.split('.')[3] }}    IN    PTR    api.{{ domain_name }}.
+{{ nodes.services.split('.')[3] }}    IN    PTR    api-int.{{ domain_name }}.

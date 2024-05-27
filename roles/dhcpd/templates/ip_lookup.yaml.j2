@@ -1,0 +1,10 @@
+---
+ip_lookup:
+  services: {{ nodes.services }}
+  bootstrap: {{ nodes.bootstrap }}
+{% for node in nodes.control_plane %}
+  control-plane-{{ node }}: {{ nodes.control_plane[node] }}
+{% endfor %}
+{% for node in range(1,nodes.compute.nodes + 1)%}
+  compute-{{ node }}: {{ nodes.compute.start | ipmath(+(node -1)) }}
+{% endfor %}

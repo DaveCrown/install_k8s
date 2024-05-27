@@ -1,0 +1,18 @@
+[Unit]
+Description=Glass ISC DHCP Server Gui Service
+
+[Service]
+ExecStart=/usr/bin/node  /opt/glass-isc-dhcp/bin/www
+# Required on some systems
+WorkingDirectory=/opt/glass-isc-dhcp
+Restart=always
+# Restart service after 10 seconds if node service crashes
+RestartSec=10
+# Output to syslog
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=glass-dhcp
+Wants=dhcpd.service
+
+[Install]
+WantedBy=multi-user.target

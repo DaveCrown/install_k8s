@@ -1,0 +1,28 @@
+---
+- name: install shizzle
+  package:
+    name: "{{ rhel_pkgs }}"
+    state: latest
+
+- name: build zone dir
+  file:
+    state: directory
+    path: /etc/named/zones
+    mode: '0755'
+
+- name: deploy the templates
+  template:
+   src: "{{ file.src }}"
+   dest: "{{ file.path }}/{{ file.dest }}" 
+  loop_control:
+    loop_var: file
+  with_items: "{{ bind_files }}"
+  notify: service_named
+
+- name: open da ports
+  firewalld:
+    zone: public
+    state: enabled
+    service: dns
+    permanent: yes
+    immediate: yes

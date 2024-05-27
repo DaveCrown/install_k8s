@@ -1,0 +1,21 @@
+---
+# vars file for roles/install_dns
+rhel_pkgs:
+  - bind
+
+bind_files:
+  - src: db.fl.j2
+    path: /etc/named/zones
+    dest: db.{{ domain_name }}
+  - src: db.rl.j2
+    path: /etc/named/zones
+    dest: db.{{ network | ipaddr('network') }}
+  - src: named.conf.j2
+    path: /etc
+    dest: named.conf
+  - src: named.conf.local.j2
+    path: /etc/named
+    dest: named.conf.local
+
+fw_ports:
+  - 53/udp

@@ -1,0 +1,4 @@
+---
+rhel_packges:
+  - dhcp-server
+  - rsyslog

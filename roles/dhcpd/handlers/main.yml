@@ -1,0 +1,16 @@
+---
+- name: systemd_reload
+  systemd:
+    daemon_reload: yes
+
+- name: dhcpd_service
+  service:
+    name: dhcpd
+    state: restarted
+    enabled: yes
+
+- name: rsyslog_service
+  service:
+    name: rsyslog
+    state: restarted
+    enabled: yes

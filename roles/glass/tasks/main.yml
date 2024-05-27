@@ -1,0 +1,80 @@
+---
+- name: install shizzle
+  package:
+    name: "{{ rhel_pkgs }}"
+    state: latest
+
+- name: deploy systemd unit file
+  template:
+    src: dhcpd_glass.service.j2
+    dest: /etc/systemd/system/dhcpd_glass.service
+    owner: root
+    group: root
+    mode: '0755'
+  notify: systemd_reload
+
+- name: clone glass repo
+  git:
+    repo: https://github.com/Akkadius/glass-isc-dhcp.git
+    dest: /opt/glass-isc-dhcp
+    force: yes
+
+- name: deploy glass config from template
+  template:
+    src: glass_config.json.j2
+    dest: /opt/glass-isc-dhcp/config/glass_config.json
+    owner: root
+    group: root
+    mode: '0644'
+  notify: dhcpd_glass_service
+
+- name: create logs dir
+  file:
+    name: logs
+    state: directory
+
+- name: set bin u+x
+  acl:
+    path: /opt/glass-isc-dhcp/bin
+    entity: root
+    etype: user
+    permissions: rwx
+    recursive: yes
+    state: present
+
+- name: get /opt/glass-isc-dhcp/*.sh
+  shell: 'ls /opt/glass-isc-dhcp/*.sh'
+  register: file_glob
+
+- name: dump files
+  debug:
+    var: file_glob.stdout_lines
+    verbosity: 2
+
+- name: set *.sh u+x
+  acl:
+    path: "{{ item }}"
+    entity: root
+    etype: user
+    permissions: rwx
+    recursive: yes
+    state: present
+  with_items: "{{ file_glob.stdout_lines }}"
+
+- name: install glass
+  npm:
+   path: /opt/glass-isc-dhcp
+  notify: dhcpd_glass_service
+
+- name: install npm forever
+  npm:
+    name: forever
+    global: yes
+
+- name: open da ports
+  firewalld:
+    zone: public
+    state: enabled
+    port: 3000/tcp
+    permanent: yes
+    immediate: yes
